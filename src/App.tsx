@@ -20,32 +20,32 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <Provider store={store}>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {/* Home page - no auth required */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              
-              {/* Dashboard routes - currently accessible without auth */}
-              {/* To enable auth protection, wrap these routes with <Route element={<ProtectedRoute />}> */}
-              <Route element={<DashboardLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/students" element={<Students />} />
-                <Route path="/students/:id" element={<StudentDetail />} />
-                <Route path="/alerts" element={<Alerts />} />
-              </Route>
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Home page - no auth required */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            
+            {/* Dashboard routes - currently accessible without auth */}
+            {/* To enable auth protection, wrap these routes with <Route element={<ProtectedRoute />}> */}
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/students" element={<Students />} />
+              <Route path="/students/:id" element={<StudentDetail />} />
+              <Route path="/alerts" element={<Alerts />} />
+            </Route>
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
+  </QueryClientProvider>
   </Provider>
 );
 
