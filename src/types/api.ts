@@ -328,6 +328,46 @@ export interface ActivityReportResponse {
   }>;
 }
 
+// Activity Predictions Types
+export interface ActivityPredictionsResponse {
+  user_profile: {
+    username: string;
+    student_standard: number;
+    role: string;
+  };
+  activity_summary: {
+    total_activities: number;
+    time_range: {
+      start: string; // ISO8601
+      end: string; // ISO8601
+      daysTracked: number;
+    };
+    total_time_hours: string;
+    top_apps: Array<{
+      app: string;
+      usageHours: string;
+      sessions: number;
+    }>;
+    category_breakdown: {
+      productive_hours: string;
+      neutral_hours: string;
+      distracting_hours: string;
+    };
+  };
+  ai_analysis: {
+    predictions: {
+      next_week: string[];
+      next_month: string[];
+    };
+    behavioral_patterns: string[];
+    recommendations: string[];
+    concerns: string[];
+    productivity_trend: 'increasing' | 'decreasing' | 'stable';
+    confidence_score: number;
+    analysis_date: string; // ISO8601
+  };
+}
+
 // Recommendation Types
 export interface Recommendation {
   id: string;

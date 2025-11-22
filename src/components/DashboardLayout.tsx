@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { BarChart3, Users, AlertCircle, LogOut, LayoutDashboard } from 'lucide-react';
+import { BarChart3, Users, AlertCircle, LogOut, LayoutDashboard, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DashboardLayout = () => {
@@ -20,6 +20,7 @@ const DashboardLayout = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Students', href: '/students', icon: Users },
+    { name: 'Behavioral Analysis', href: '/behavioral-analysis', icon: Brain },
     { name: 'Alerts', href: '/alerts', icon: AlertCircle },
   ];
 

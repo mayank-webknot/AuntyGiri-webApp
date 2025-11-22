@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import StudentDetail from "./pages/StudentDetail";
+import BehavioralAnalysis from "./pages/BehavioralAnalysis";
 import Alerts from "./pages/Alerts";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/students" element={<Students />} />
               <Route path="/students/:id" element={<StudentDetail />} />
+              <Route path="/behavioral-analysis" element={<BehavioralAnalysis />} />
               <Route path="/alerts" element={<Alerts />} />
             </Route>
             

@@ -6,6 +6,7 @@ import type {
   TimelineQueryParams,
   ProductivityScoreResponse,
   ActivityReportResponse,
+  ActivityPredictionsResponse,
 } from '@/types/api';
 
 export const dashboardApi = baseApi.injectEndpoints({
@@ -70,6 +71,11 @@ export const dashboardApi = baseApi.injectEndpoints({
       },
       providesTags: ['Dashboard'],
     }),
+    
+    getActivityPredictions: builder.query<ApiResponse<ActivityPredictionsResponse>, void>({
+      query: () => '/dashboard/activity-predictions',
+      providesTags: ['Dashboard'],
+    }),
   }),
 });
 
@@ -78,5 +84,6 @@ export const {
   useGetTimelineQuery,
   useGetProductivityScoreQuery,
   useGetActivityReportQuery,
+  useGetActivityPredictionsQuery,
 } = dashboardApi;
 
