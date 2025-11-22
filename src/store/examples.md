@@ -152,11 +152,11 @@ function StudentDetail({ studentId }: { studentId: string }) {
 ```typescript
 import { useGetActivitiesQuery } from '@/store/api/monitorApi';
 
-function ActivitiesList({ userId }: { userId?: string }) {
+function ActivitiesList({ studentId }: { studentId?: string }) {
   const { data, isLoading } = useGetActivitiesQuery({
-    userId,
-    startDate: '2025-01-01',
-    endDate: '2025-01-31',
+    studentId, // Changed from userId to match Swagger
+    from: '2025-01-01', // Changed from startDate to match Swagger
+    to: '2025-01-31',   // Changed from endDate to match Swagger
   });
 
   const activities = data?.data || [];
@@ -270,6 +270,29 @@ function ScreenshotsList() {
           alt={screenshot.windowTitle}
         />
       ))}
+    </div>
+  );
+}
+```
+
+### Get Screenshot by ID
+```typescript
+import { useGetScreenshotByIdQuery } from '@/store/api/screenshotsApi';
+
+function ScreenshotDetail({ screenshotId }: { screenshotId: string }) {
+  const { data, isLoading } = useGetScreenshotByIdQuery(screenshotId);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!data?.data) return <div>Screenshot not found</div>;
+
+  const screenshot = data.data;
+
+  return (
+    <div>
+      <img src={screenshot.url} alt={screenshot.windowTitle} />
+      <p>App: {screenshot.appName}</p>
+      <p>Window: {screenshot.windowTitle}</p>
+      <p>Flagged: {screenshot.isFlagged ? 'Yes' : 'No'}</p>
     </div>
   );
 }

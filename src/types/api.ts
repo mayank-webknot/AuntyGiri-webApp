@@ -1,7 +1,9 @@
 // API Response Types
+// Note: Contract uses { status: "success" } but we'll handle both formats
 
 export interface ApiResponse<T> {
-  success: boolean;
+  status?: 'success' | 'error'; // Contract format
+  success?: boolean; // Alternative format
   data: T;
   message?: string;
   errors?: Record<string, string[]>;
@@ -189,14 +191,20 @@ export interface StudentsQueryParams {
 }
 
 export interface TimelineQueryParams {
-  date?: string; // YYYY-MM-DD
-  interval?: 'hour' | 'day';
+  date?: string; // ISO8601 date (YYYY-MM-DD)
+  interval?: 'minute' | 'hour' | 'day'; // Contract allows: 'minute' | 'hour' | 'day'
 }
 
 export interface ActivitiesQueryParams {
-  userId?: string;
-  startDate?: string;
-  endDate?: string;
+  startDate?: string; // Contract format: ISO8601
+  endDate?: string; // Contract format: ISO8601
+  limit?: number; // Contract default: 100
+  offset?: number; // Contract default: 0
+  appName?: string; // Filter by app name
+  // Legacy support (from Swagger)
+  studentId?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface TopAppsQueryParams {
@@ -209,6 +217,7 @@ export interface TopAppsQueryParams {
 export interface WebsiteUsageQueryParams {
   limit?: number;
   startDate?: string;
+  endDate?: string;
   userId?: string;
 }
 
@@ -222,5 +231,189 @@ export interface ScreenshotsQueryParams {
   search?: string;
   sortBy?: string;
   userId?: string;
+}
+
+// Monitor Screenshots Query (different from dashboard/screenshots)
+export interface MonitorScreenshotsQueryParams {
+  startDate?: string; // ISO8601
+  endDate?: string; // ISO8601
+  limit?: number; // default: 50
+  offset?: number; // default: 0
+}
+
+// Keystrokes Types
+export interface Keystroke {
+  id: string;
+  userId: string;
+  key_code: number;
+  key_char: string | null;
+  timestamp: string; // ISO8601
+  app_name: string;
+}
+
+export interface KeystrokesQueryParams {
+  start_date?: string; // ISO8601 - NOTE: snake_case for monitor APIs
+  end_date?: string; // ISO8601 - NOTE: snake_case for monitor APIs
+  limit?: number; // default: 100
+  offset?: number; // default: 0
+  app_name?: string;
+}
+
+// System Metrics Types
+export interface SystemMetric {
+  id: string;
+  userId: string;
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  network_in: number | null;
+  network_out: number | null;
+  cpu_temperature: number | null;
+  disk_read: number | null;
+  disk_write: number | null;
+  created_at: string; // ISO8601
+}
+
+export interface MetricsQueryParams {
+  start_date?: string; // ISO8601 - NOTE: snake_case for monitor APIs
+  end_date?: string; // ISO8601 - NOTE: snake_case for monitor APIs
+  limit?: number; // default: 100
+  offset?: number; // default: 0
+}
+
+export interface MetricsSummaryResponse {
+  avg_cpu_usage: number;
+  avg_memory_usage: number;
+  avg_disk_usage: number;
+  avg_network_in: number;
+  avg_network_out: number;
+  avg_cpu_temp: number;
+  avg_disk_read: number;
+  avg_disk_write: number;
+}
+
+// Dashboard Additional Types
+export interface ProductivityScoreResponse {
+  score: number; // 0-100
+  breakdown: {
+    productive: number; // seconds
+    neutral: number; // seconds
+    distracting: number; // seconds
+  };
+  totalTime: number; // seconds
+}
+
+export interface ActivityReportResponse {
+  summary: {
+    totalTime: number; // seconds
+    totalSessions: number;
+    uniqueApps: number;
+    avgCpuUsage: number;
+    avgMemoryUsage: number;
+    avgDiskUsage: number;
+  };
+  topApps: Array<{
+    appName: string;
+    totalDuration: number; // seconds
+    sessions: number;
+  }>;
+  dailyActivity: Array<{
+    date: string; // ISO8601 date
+    totalDuration: number; // seconds
+  }>;
+  topWebsites: Array<{
+    url: string;
+    totalDuration: number; // seconds
+    visits: number;
+  }>;
+}
+
+// Recommendation Types
+export interface Recommendation {
+  id: string;
+  title: string;
+  description: string;
+  content_type: string;
+  url: string;
+  thumbnail_url: string;
+  category: string;
+  subcategory: string;
+  target_standards: number[];
+  difficulty_level: string;
+  duration_minutes: number;
+  language: string;
+  source: string;
+  author: string;
+  rating: number;
+  tags: string[];
+  trending_score: number;
+  personalization_score: number;
+  created_at: string; // ISO8601
+  user_interaction?: {
+    interaction_type: string;
+    rating: number;
+    recommended_at: string; // ISO8601
+  };
+}
+
+export interface TrendingTopic {
+  id: string;
+  topic_name: string;
+  description: string;
+  category: string;
+  target_age_groups: number[];
+  target_standards: number[];
+  relevance_in_india: string;
+  future_prospects: string;
+  trending_score: number;
+  growth_rate: number;
+  job_market_demand: string;
+  salary_range: string;
+  skills_required: string[];
+  related_careers: string[];
+  learning_path: string[];
+  created_at: string; // ISO8601
+}
+
+export interface RecommendationsQueryParams {
+  limit?: number; // default: 20
+  offset?: number; // default: 0
+  category?: string;
+  content_type?: string;
+  difficulty_level?: string;
+}
+
+export interface RecommendationsResponse {
+  total: number;
+  recommendations: Recommendation[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total_pages: number;
+  };
+}
+
+export interface UserInteraction {
+  id: string;
+  interaction_type: string;
+  rating: number | null;
+  time_spent_minutes: number | null;
+  completion_percentage: number | null;
+  feedback: string | null;
+  recommended_at: string; // ISO8601
+  interacted_at: string; // ISO8601
+  Recommendation: {
+    title: string;
+    content_type: string;
+    category: string;
+    url: string;
+    thumbnail_url: string;
+  };
+}
+
+export interface InteractionsQueryParams {
+  limit?: number; // default: 50
+  offset?: number; // default: 0
+  interaction_type?: string;
 }
 

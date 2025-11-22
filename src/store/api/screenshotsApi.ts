@@ -4,11 +4,13 @@ import type {
   PaginatedResponse,
   Screenshot,
   ScreenshotsQueryParams,
+  MonitorScreenshotsQueryParams,
 } from '@/types/api';
 
 export const screenshotsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getScreenshots: builder.query<ApiResponse<PaginatedResponse<Screenshot>>, ScreenshotsQueryParams>({
+    // Dashboard screenshots endpoint
+    getScreenshots: builder.query<ApiResponse<{ total: number; totalPages: number; currentPage: number; screenshots: Screenshot[] }>, ScreenshotsQueryParams>({
       query: (params) => {
         const searchParams = new URLSearchParams();
         
@@ -28,10 +30,35 @@ export const screenshotsApi = baseApi.injectEndpoints({
       },
       providesTags: ['Screenshots'],
     }),
+    
+    // Monitor screenshots endpoint (different from dashboard)
+    getMonitorScreenshots: builder.query<ApiResponse<{ total: number; screenshots: Screenshot[] }>, MonitorScreenshotsQueryParams>({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        
+        // Contract format: startDate, endDate (camelCase for monitor/screenshots)
+        if (params.startDate) searchParams.append('startDate', params.startDate);
+        if (params.endDate) searchParams.append('endDate', params.endDate);
+        if (params.limit) searchParams.append('limit', params.limit.toString());
+        if (params.offset) searchParams.append('offset', params.offset.toString());
+        
+        return {
+          url: `/monitor/screenshots?${searchParams.toString()}`,
+        };
+      },
+      providesTags: ['Screenshots'],
+    }),
+    
+    getScreenshotById: builder.query<ApiResponse<Screenshot>, string>({
+      query: (id) => `/monitor/screenshots/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Screenshots', id }],
+    }),
   }),
 });
 
 export const {
   useGetScreenshotsQuery,
+  useGetMonitorScreenshotsQuery,
+  useGetScreenshotByIdQuery,
 } = screenshotsApi;
 

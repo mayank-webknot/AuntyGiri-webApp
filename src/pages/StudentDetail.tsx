@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils';
 const StudentDetail = () => {
   const { id } = useParams();
 
-  
+  // Using mock data (Students API not in contract)
+  // In a real app, you would fetch student data from a contract-compliant endpoint
   const student = {
-    id,
+    id: id || '1',
     name: 'Sarah Johnson',
     email: 'sarah.j@school.com',
     rollNumber: 'CS-2024-001',
@@ -23,11 +24,12 @@ const StudentDetail = () => {
     avatar: undefined,
   };
 
+  // Mock stats (Students API not in contract)
   const stats = {
-    focusTime: '6h 24m',
-    productiveTime: 78,
+    focusTime: '4h 30m',
+    productiveTime: 85,
     warnings: 2,
-    screenshots: 145,
+    screenshots: 32,
   };
 
   return (

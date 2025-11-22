@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -76,14 +76,16 @@ const mockStudents: Student[] = [
 ];
 
 const Students = () => {
-  const [students] = useState<Student[]>(mockStudents);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredStudents = students.filter((student) =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.rollNumber.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Using mock data (Students API not in contract)
+  const filteredStudents = useMemo(() => {
+    return mockStudents.filter((student) =>
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.rollNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
 
   const getProductivityColor = (score: number) => {
     if (score >= 80) return 'productivity-high';

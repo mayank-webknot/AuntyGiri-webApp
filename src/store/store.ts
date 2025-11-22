@@ -4,11 +4,13 @@ import { baseApi } from './baseApi';
 // Import all API slices to ensure they're registered
 import './api/authApi';
 import './api/dashboardApi';
-import './api/studentsApi';
-import './api/studentDetailApi';
 import './api/monitorApi';
+import './api/monitorMetricsApi';
+import './api/monitorKeystrokesApi';
 import './api/appsWebsitesApi';
 import './api/screenshotsApi';
+import './api/recommendationsApi';
+// Students APIs removed - not in contract
 
 export const store = configureStore({
   reducer: {

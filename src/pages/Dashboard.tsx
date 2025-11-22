@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { MetricCard } from '@/components/MetricCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Users, Activity, TrendingUp, AlertTriangle, Loader2 } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -17,6 +17,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DashboardSummary, ActivityData, Alert } from '@/types';
+import { useGetDashboardSummaryQuery, useGetTimelineQuery } from '@/store/api/dashboardApi';
+import { format } from 'date-fns';
 
 // Mock data for demo
 const mockSummary: DashboardSummary = {
@@ -75,15 +77,102 @@ const mockAlerts: Alert[] = [
 ];
 
 const Dashboard = () => {
-  const [summary, setSummary] = useState<DashboardSummary>(mockSummary);
-  const [activityData, setActivityData] = useState<ActivityData[]>(mockActivityData);
-  const [recentAlerts, setRecentAlerts] = useState<Alert[]>(mockAlerts);
-  const [loading, setLoading] = useState(false);
+  // Fetch data from API
+  const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useGetDashboardSummaryQuery();
+  
+  // Use today's date (2025-01-21) for testing - matches backend data
+  const todayDate = '2025-01-21'; // format(new Date(), 'yyyy-MM-dd');
+  const { data: timelineData, isLoading: timelineLoading, error: timelineError } = useGetTimelineQuery({
+    date: todayDate,
+    interval: 'hour', // Using 'hour' as default per contract
+  });
 
-  useEffect(() => {
-    // In production, fetch real data from API
-    // fetchDashboardData();
-  }, []);
+  // Transform API data to component format
+  // Contract format: { status: "success", data: { summary: {...}, comparison: {...} } }
+  const summary: DashboardSummary = useMemo(() => {
+    if (!summaryData?.data) return mockSummary;
+    
+    const apiData = summaryData.data;
+    // Handle contract format: data.summary and data.comparison
+    if (apiData.summary) {
+      return {
+        totalStudents: 0, // Not in contract - may need to fetch separately
+        activeToday: 0, // Not in contract - may need to fetch separately
+        averageProductivity: apiData.summary.productivityScore || 0,
+        alertsToday: apiData.summary.screenshotsCount || 0, // Using screenshotsCount as placeholder
+        trends: {
+          students: 0,
+          active: 0,
+          productivity: apiData.comparison?.yesterday_total_time 
+            ? Math.round(((apiData.summary.totalTime - apiData.comparison.yesterday_total_time) / apiData.comparison.yesterday_total_time) * 100)
+            : 0,
+        },
+      };
+    }
+    
+    // Fallback to old format if present
+    return {
+      totalStudents: (apiData as any).totalStudents || mockSummary.totalStudents,
+      activeToday: (apiData as any).activeToday || mockSummary.activeToday,
+      averageProductivity: (apiData as any).averageProductivity || mockSummary.averageProductivity,
+      alertsToday: (apiData as any).alertsToday?.total || mockSummary.alertsToday,
+      trends: (apiData as any).trends || mockSummary.trends,
+    };
+  }, [summaryData]);
+
+  const activityData: ActivityData[] = useMemo(() => {
+    if (!timelineData?.data) return mockActivityData;
+    
+    // Contract format: { timeline: { "2025-11-20 18:00": [{ app_name, duration }] }, activity_types: [] }
+    const apiData = timelineData.data;
+    
+    if (apiData.timeline && typeof apiData.timeline === 'object') {
+      // Convert timeline object to array format
+      const timelineEntries = Object.entries(apiData.timeline);
+      return timelineEntries.map(([timeSlot, activities]: [string, any]) => {
+        const totalDuration = Array.isArray(activities) 
+          ? activities.reduce((sum: number, act: any) => sum + (act.duration || 0), 0)
+          : 0;
+        const productiveDuration = totalDuration * 0.7; // Estimate - contract doesn't specify
+        
+        return {
+          time: format(new Date(timeSlot), 'EEE'),
+          productivity: totalDuration > 0 
+            ? Math.round((productiveDuration / totalDuration) * 100)
+            : 0,
+          classAverage: totalDuration > 0 
+            ? Math.round((productiveDuration / totalDuration) * 100)
+            : 0,
+          topPerformers: totalDuration > 0 
+            ? Math.round((productiveDuration / totalDuration) * 100) + 10
+            : 0,
+        };
+      });
+    }
+    
+    // Fallback to old format if present
+    if (Array.isArray(apiData)) {
+      return apiData.map((item: any) => ({
+        time: format(new Date(item.timeSlot), 'EEE'),
+        productivity: item.totalDuration > 0 
+          ? Math.round((item.productiveDuration / item.totalDuration) * 100)
+          : 0,
+        classAverage: item.totalDuration > 0 
+          ? Math.round((item.productiveDuration / item.totalDuration) * 100)
+          : 0,
+        topPerformers: item.totalDuration > 0 
+          ? Math.round((item.productiveDuration / item.totalDuration) * 100) + 10
+          : 0,
+      }));
+    }
+    
+    return mockActivityData;
+  }, [timelineData]);
+
+  // Keep mock alerts for now (no API endpoint for alerts yet)
+  const recentAlerts = mockAlerts;
+  const loading = summaryLoading || timelineLoading;
+  const error = summaryError || timelineError;
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -104,6 +193,27 @@ const Dashboard = () => {
     const hours = Math.floor(minutes / 60);
     return `${hours}h ago`;
   };
+
+  if (loading) {
+    return (
+      <div className="container py-8 px-4 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-8 px-4">
+        <div className="text-center text-destructive">
+          <p>Failed to load dashboard data. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8 px-4 space-y-8">

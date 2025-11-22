@@ -31,6 +31,7 @@ export const appsWebsitesApi = baseApi.injectEndpoints({
         
         if (params.limit) searchParams.append('limit', params.limit.toString());
         if (params.startDate) searchParams.append('startDate', params.startDate);
+        if (params.endDate) searchParams.append('endDate', params.endDate);
         if (params.userId) searchParams.append('userId', params.userId);
         
         return {

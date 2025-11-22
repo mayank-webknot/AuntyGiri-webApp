@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  
+
   // RTK Query hooks
   const [loginMutation] = useLoginMutation();
   const [logoutMutation] = useLogoutMutation();
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token && storedUser) {
       // Set user from localStorage immediately for faster UI
       try {
-        setUser(JSON.parse(storedUser));
+      setUser(JSON.parse(storedUser));
       } catch {
         // Invalid stored user, clear it
         localStorage.removeItem('user');
@@ -41,12 +41,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Then verify with backend
       refetchMe()
         .then((result) => {
-          if (result.data?.success) {
-            const userData = result.data.data;
+          if (result.data?.success || result.data?.status === 'success') {
+            // Handle both response formats
+            const userData = result.data.data?.user || result.data.data;
             const updatedUser: User = {
               id: userData.id,
               email: userData.email,
-              name: `${userData.firstName} ${userData.lastName}`,
+              name: `${userData.firstName || userData.username || ''} ${userData.lastName || ''}`.trim() || userData.email,
               role: userData.role as User['role'],
               avatar: userData.avatar,
             };
@@ -74,12 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Update user when meData changes
   useEffect(() => {
-    if (meData?.success && meData.data) {
-      const userData = meData.data;
+    if ((meData?.success || meData?.status === 'success') && meData.data) {
+      // Handle both response formats: { data: { user: {...} } } or { data: {...} }
+      const userData = meData.data.user || meData.data;
       const updatedUser: User = {
         id: userData.id,
         email: userData.email,
-        name: `${userData.firstName} ${userData.lastName}`,
+        name: `${userData.firstName || userData.username || ''} ${userData.lastName || ''}`.trim() || userData.email,
         role: userData.role as User['role'],
         avatar: userData.avatar,
       };
@@ -92,27 +94,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const result = await loginMutation({ email, password }).unwrap();
       
-      if (result.success) {
+      if (result.success || result.status === 'success') {
         // Store token and user data
-        localStorage.setItem('auth_token', result.data.token);
-        localStorage.setItem('refreshToken', result.data.refreshToken);
+        const responseData = result.data;
+        localStorage.setItem('auth_token', responseData.token || responseData.accessToken);
+        if (responseData.refreshToken) {
+          localStorage.setItem('refreshToken', responseData.refreshToken);
+        }
         
-        const userData = result.data.user;
+        const userData = responseData.user;
         const user: User = {
           id: userData.id,
           email: userData.email,
-          name: `${userData.firstName} ${userData.lastName}`,
+          name: `${userData.firstName || userData.username || ''} ${userData.lastName || ''}`.trim() || userData.email,
           role: userData.role as User['role'],
           avatar: userData.avatar,
         };
         
         localStorage.setItem('user', JSON.stringify(user));
         setUser(user);
-        
-        toast({
-          title: 'Success',
-          description: 'Logged in successfully',
-        });
+      
+      toast({
+        title: 'Success',
+        description: 'Logged in successfully',
+      });
       }
     } catch (error: any) {
       const errorMessage = error?.data?.message || error?.message || 'Login failed';
@@ -134,11 +139,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Logout API call failed:', error);
     } finally {
       // Clear local storage
-      localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_token');
       localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      setUser(null);
-      window.location.href = '/login';
+    localStorage.removeItem('user');
+    setUser(null);
+    window.location.href = '/login';
     }
   };
 
