@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 const StudentDetail = () => {
   const { id } = useParams();
 
-  // Mock student data
+  
   const student = {
     id,
     name: 'Sarah Johnson',

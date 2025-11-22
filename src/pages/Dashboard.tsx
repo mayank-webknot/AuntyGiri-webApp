@@ -17,7 +17,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DashboardSummary, ActivityData, Alert } from '@/types';
-import api from '@/lib/api';
 
 // Mock data for demo
 const mockSummary: DashboardSummary = {
